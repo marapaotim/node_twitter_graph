@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Soft Realtime Sentiment Scores from Redis</title>
+    <script type="text/javascript" src="/smoothie.js"></script>
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+    <script type="text/javascript">
+      function createGraph() {
+        var sock = io();
+        var smoothie = new SmoothieChart();
+        smoothie.streamTo(document.getElementById('twits'));
+        var redLine = new TimeSeries();
+        var blueLine = new TimeSeries();
+        smoothie.addTimeSeries(redLine,{ strokeStyle:'rgb(255, 0, 0)', lineWidth:3 } );
+        smoothie.addTimeSeries(blueLine, { strokeStyle:'rgb(0, 0, 255)', lineWidth:3 });
+        sock.on('twits', function(msg) {
+          var at = new Date().getTime();
+          var reach = msg.reach * 1;
+          if(msg.category == "red") {
+            redLine.append(at, reach);
+          } else {
+            blueLine.append(at, reach);
+          }
+        });
+      }
+    </script>
+    <style>
+      * { margin: 20; padding: 10; box-sizing: border-box; }
+      body { margin: 20; padding: 0; font: 13px Helvetica, Arial; }
+    </style>
+  </head>
+  <body onload="createGraph()">
+    <h3>Twitter Reach</h3>
+    <div class="chart">
+      <h5>Tweets</h5>
+      <canvas id="twits" width="800" height="200"></canvas>
+    </div>
+  </body>
+</html>
